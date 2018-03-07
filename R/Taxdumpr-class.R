@@ -382,3 +382,25 @@ getStandardLineageIdsByIds <- function(x, taxonomyIds) {
   ## Return retrieved lineages
   return(lineagesDf)
 }
+
+
+#'
+#'
+#'
+getStandardLineageIdsByIdsAsDataFrame <- function(x, taxonomyIds) {
+  lineagesDf <- getLineageIdsByIds(x, taxonomyIds)
+  ranks <- getTaxonomyRanksByIds(x, lineagesDf$lineageId)
+  isStandard <- ranks %in% c(x@.STANDARD_RANKS, NA)
+  lineagesDf <- lineagesDf[isStandard,]
+  try(rownames(lineagesDf) <- getTaxonomyRanksByIds(x, lineagesDf$lineageId), silent = T) ## TODO: threat this case without a try statement
+  standardIds <- lineagesDf[x@.STANDARD_RANKS,]$lineageId ## 7 standard ids, has NA for missing levels
+  auxDf <- c(taxonomyIds, standardIds) %>% t %>% as.data.frame
+  auxColnames <- c("taxonomy", x@.STANDARD_RANKS) %>% paste0(., "Id")
+  colnames(auxDf) <- auxColnames
+
+  ## Return retrieved lineages
+  return(auxDf)
+}
+
+# taxonomyIds <- 9876543210123456789
+# x <- Taxdumpr(nodesDmpLocation = "~/taxdump/nodes.dmp", namesDmpLocation = "~/taxdump/names.dmp")

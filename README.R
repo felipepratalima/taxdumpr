@@ -145,3 +145,8 @@ getLineageIdsByIds(taxdumpr, 290318)
 #' ### The getStandardLineageIdsByIds function should receive taxonomy id(s) and return standard taxonomy:
 #'
 getStandardLineageIdsByIds(taxdumpr, 290318)
+
+#'
+#' ### The getStandardLineageIdsByIdsAsDataFrame function should receive taxonomy id(s) and return standard taxonomy as DF = [taxonomyId, superkingdomId, phylumId, classId, orderId, familyId, genusId, speciesId]:
+#'
+getStandardLineageIdsByIdsAsDataFrame(taxdumpr, 1094)

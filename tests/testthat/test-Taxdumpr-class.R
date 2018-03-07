@@ -386,15 +386,15 @@ test_that("The getStandardLineageIdsByIds function should receive taxonomy id(s)
   expect_equal(nrow(lineage), 6)
   expect_equal(lineage$lineageId, c(2,1090,191410,191411,191412,1091))
 
-  # ## Valid id (2)
-  # lineage <- getLineageIdsByIds(taxdumpr, c(2, 290318, 1094))
-  # expect_equal(nrow(lineage), 22)
-  # expect_equal(lineage$lineageId, c(2, 2,1783270,68336,1090,191410,191411,191412,274493,1091,1094,290318, 2,1783270,68336,1090,191410,191411,191412,274493,1091,1094))
-  #
+  ## Valid id (2)
+  lineage <- getStandardLineageIdsByIds(taxdumpr, c(2, 290318, 1094))
+  expect_equal(nrow(lineage), 15)
+  expect_equal(lineage$lineageId, c(2, 2,1090,191410,191411,191412,1091,1094, 2,1090,191410,191411,191412,1091,1094))
+
   # ## Valid id (duplicated)
-  # lineage <- getLineageIdsByIds(taxdumpr, c(290318, 290318))
-  # expect_equal(nrow(lineage), 11)
-  # expect_equal(lineage$lineageId, c(2,1783270,68336,1090,191410,191411,191412,274493,1091,1094,290318))
+  lineage <- getStandardLineageIdsByIds(taxdumpr, c(290318, 290318))
+  expect_equal(nrow(lineage), 7)
+  expect_equal(lineage$lineageId, c(2,1090,191410,191411,191412,1091,1094))
   #
   # ## Inexistent and Valid id
   # lineage <- getLineageIdsByIds(taxdumpr, c(9876543210123456789, 290318))
@@ -419,4 +419,41 @@ test_that("The getStandardLineageIdsByIds function should receive taxonomy id(s)
   # expect_equal(nrow(lineage), 12)
   # expect_equal(lineage$taxonomyId, c(9876543210123456789, replicate(11, 290318)))
   # expect_equal(lineage$lineageId, c(9876543210123456789, 2,1783270,68336,1090,191410,191411,191412,274493,1091,1094,290318))
+})
+
+test_that("The getStandardLineageIdsByIdsAsDataFrame function should receive taxonomy id(s) and return standard taxonomy as DF = [taxonomyId, superkingdomId, phylumId, ..., speciesId]", {
+  ## NA
+  lineage <- getStandardLineageIdsByIdsAsDataFrame(taxdumpr, NA)
+  expect_equal(nrow(lineage), 1)
+  expect_equal(ncol(lineage), 8)
+  expect_equal(colnames(lineage), c("taxonomyId", "superkingdomId", "phylumId", "classId", "orderId", "familyId", "genusId", "speciesId"))
+  expect_equal(lineage[1,] %>% as.numeric, c(NA_integer_,NA_integer_,NA_integer_,NA_integer_,NA_integer_,NA_integer_,NA_integer_,NA_integer_))
+
+  ## Inexistent id
+  lineage <- getStandardLineageIdsByIdsAsDataFrame(taxdumpr, 9876543210123456789)
+  expect_equal(nrow(lineage), 1)
+  expect_equal(ncol(lineage), 8)
+  expect_equal(colnames(lineage), c("taxonomyId", "superkingdomId", "phylumId", "classId", "orderId", "familyId", "genusId", "speciesId"))
+  expect_equal(lineage[1,] %>% as.numeric, c(9876543210123456789,NA_integer_,NA_integer_,NA_integer_,NA_integer_,NA_integer_,NA_integer_,NA_integer_))
+
+  ## Valid id (subspecies)
+  lineage <- getStandardLineageIdsByIdsAsDataFrame(taxdumpr, 290318)
+  expect_equal(nrow(lineage), 1)
+  expect_equal(ncol(lineage), 8)
+  expect_equal(colnames(lineage), c("taxonomyId", "superkingdomId", "phylumId", "classId", "orderId", "familyId", "genusId", "speciesId"))
+  expect_equal(lineage[1,] %>% as.numeric, c(290318,2,1090,191410,191411,191412,1091,1094))
+
+  ## Valid id (species)
+  lineage <- getStandardLineageIdsByIdsAsDataFrame(taxdumpr, 1094)
+  expect_equal(nrow(lineage), 1)
+  expect_equal(ncol(lineage), 8)
+  expect_equal(colnames(lineage), c("taxonomyId", "superkingdomId", "phylumId", "classId", "orderId", "familyId", "genusId", "speciesId"))
+  expect_equal(lineage[1,] %>% as.numeric, c(1094,2,1090,191410,191411,191412,1091,1094))
+
+  ## Valid id (genus)
+  lineage <- getStandardLineageIdsByIdsAsDataFrame(taxdumpr, 1091)
+  expect_equal(nrow(lineage), 1)
+  expect_equal(ncol(lineage), 8)
+  expect_equal(colnames(lineage), c("taxonomyId", "superkingdomId", "phylumId", "classId", "orderId", "familyId", "genusId", "speciesId"))
+  expect_equal(lineage[1,] %>% as.numeric, c(1091,2,1090,191410,191411,191412,1091,NA_integer_))
 })

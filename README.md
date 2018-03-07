@@ -1,7 +1,7 @@
 taxdumpr
 ================
 prata
-Tue Dec 12 14:05:55 2017
+Wed Mar 7 17:14:47 2018
 
 ``` r
 knitr::opts_chunk$set(echo = TRUE)
@@ -317,3 +317,14 @@ getStandardLineageIdsByIds(taxdumpr, 290318)
     ## 7      290318    191412
     ## 9      290318      1091
     ## 10     290318      1094
+
+### The getStandardLineageIdsByIdsAsDataFrame function should receive taxonomy id(s) and return standard taxonomy as DF = \[taxonomyId, superkingdomId, phylumId, classId, orderId, familyId, genusId, speciesId\]:
+
+``` r
+getStandardLineageIdsByIdsAsDataFrame(taxdumpr, 1094)
+```
+
+    ##   taxonomyId superkingdomId phylumId classId orderId familyId genusId
+    ## 1       1094              2     1090  191410  191411   191412    1091
+    ##   speciesId
+    ## 1      1094
