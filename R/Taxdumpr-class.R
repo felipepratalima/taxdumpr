@@ -387,20 +387,66 @@ getStandardLineageIdsByIds <- function(x, taxonomyIds) {
 #'
 #'
 #'
+# V1
+# getStandardLineageIdsByIdsAsDataFrame <- function(x, taxonomyIds) {
+#   lineagesDf <- getLineageIdsByIds(x, taxonomyIds)
+#   lineagesDf$ranks <- getTaxonomyRanksByIds(x, lineagesDf$lineageId)
+#   isStandard <- lineagesDf$ranks %in% c(x@.STANDARD_RANKS, NA)
+#   lineagesDf <- lineagesDf[isStandard,]
+#   try(rownames(lineagesDf) <- getTaxonomyRanksByIds(x, lineagesDf$lineageId), silent = T) ## TODO: threat this case without a try statement
+#   standardIds <- lineagesDf[x@.STANDARD_RANKS,]$lineageId ## 7 standard ids, has NA for missing levels
+#   auxDf <- c(taxonomyIds, standardIds) %>% t %>% as.data.frame
+#   auxColnames <- c("taxonomy", x@.STANDARD_RANKS) %>% paste0(., "Id")
+#   colnames(auxDf) <- auxColnames
+#
+#   ## Return retrieved lineages
+#   return(auxDf)
+# }
+# V2
 getStandardLineageIdsByIdsAsDataFrame <- function(x, taxonomyIds) {
   lineagesDf <- getLineageIdsByIds(x, taxonomyIds)
-  ranks <- getTaxonomyRanksByIds(x, lineagesDf$lineageId)
-  isStandard <- ranks %in% c(x@.STANDARD_RANKS, NA)
+  lineagesDf$rank <- getTaxonomyRanksByIds(x, lineagesDf$lineageId)
+  isStandard <- lineagesDf$rank %in% c(x@.STANDARD_RANKS, NA)
   lineagesDf <- lineagesDf[isStandard,]
-  try(rownames(lineagesDf) <- getTaxonomyRanksByIds(x, lineagesDf$lineageId), silent = T) ## TODO: threat this case without a try statement
-  standardIds <- lineagesDf[x@.STANDARD_RANKS,]$lineageId ## 7 standard ids, has NA for missing levels
-  auxDf <- c(taxonomyIds, standardIds) %>% t %>% as.data.frame
-  auxColnames <- c("taxonomy", x@.STANDARD_RANKS) %>% paste0(., "Id")
-  colnames(auxDf) <- auxColnames
+
+  lineagesDf <-
+    data.frame(taxonomyId = NA, lineageId = NA, rank = x@.STANDARD_RANKS) %>%
+    rbind(lineagesDf)
+
+  lineagesDf <- reshape2::dcast(lineagesDf, taxonomyId ~ rank, value.var = "lineageId")
+  lineagesDf <- lineagesDf[,c("taxonomyId", x@.STANDARD_RANKS)]
+  colnames(lineagesDf) <- c("taxonomy", x@.STANDARD_RANKS) %>% paste0(., "Id")
+
+  if (NA %in% taxonomyIds == FALSE) {
+    lineagesDf <- lineagesDf %>% dplyr::filter(taxonomyId %>% is.na == FALSE)
+  }
 
   ## Return retrieved lineages
-  return(auxDf)
+  return(lineagesDf)
 }
 
-# taxonomyIds <- 9876543210123456789
+# taxonomyIds <- c(NA, NA)
+# taxonomyIds <- c(2, 290318, 1094, 454698865198)
+# taxonomyIds <- 454698865198
+# taxonomyIds <- 460513 ## incomplete
 # x <- Taxdumpr(nodesDmpLocation = "~/taxdump/nodes.dmp", namesDmpLocation = "~/taxdump/names.dmp")
+# getStandardLineageIdsByIdsAsDataFrame(x, taxonomyIds)
+# getStandardLineageIdsByIdsAsDataFrame(x, 454698865198)
+# getStandardLineageIdsByIdsAsDataFrame(x, NA)
+# getStandardLineageIdsByIdsAsDataFrame(x, c(NA, 454698865198))
+# getStandardLineageIdsByIdsAsDataFrame(x, c(1094, 454698865198))
+# getStandardLineageIdsByIdsAsDataFrame(x, 460513)
+
+getStandardLineageIdsAndScientificNamesByIdsAsDataFrame <- function(x, taxonomyIds) {
+  lineagesDf <- getStandardLineageIdsByIdsAsDataFrame(x, taxonomyIds)
+  lineagesDf$taxonomyName <- getScientificNamesByIds(x, lineagesDf$taxonomyId)
+  lineagesDf$superkingdomName <- getScientificNamesByIds(x, lineagesDf$superkingdomId)
+  lineagesDf$phylumName <- getScientificNamesByIds(x, lineagesDf$phylumId)
+  lineagesDf$className <- getScientificNamesByIds(x, lineagesDf$classId)
+  lineagesDf$orderName <- getScientificNamesByIds(x, lineagesDf$orderId)
+  lineagesDf$familyName <- getScientificNamesByIds(x, lineagesDf$familyId)
+  lineagesDf$genusName <- getScientificNamesByIds(x, lineagesDf$genusId)
+  lineagesDf$speciesName <- getScientificNamesByIds(x, lineagesDf$speciesId)
+
+  return(lineagesDf)
+}

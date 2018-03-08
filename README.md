@@ -1,7 +1,7 @@
 taxdumpr
 ================
 prata
-Wed Mar 7 17:14:47 2018
+Wed Mar 7 23:55:23 2018
 
 ``` r
 knitr::opts_chunk$set(echo = TRUE)
@@ -328,3 +328,18 @@ getStandardLineageIdsByIdsAsDataFrame(taxdumpr, 1094)
     ## 1       1094              2     1090  191410  191411   191412    1091
     ##   speciesId
     ## 1      1094
+
+### The getStandardLineageIdsAndScientificNamesByIdsAsDataFrame function should receive taxonomy id(s) and return standard taxonomy as DF = \[taxonomyId, superkingdomId, phylumId, classId, orderId, familyId, genusId, speciesId, taxonomyName, superkingdomName, phylumName, className, orderName, familyName, genusName, speciesName\]:
+
+``` r
+getStandardLineageIdsAndScientificNamesByIdsAsDataFrame(taxdumpr, 1094)
+```
+
+    ##   taxonomyId superkingdomId phylumId classId orderId familyId genusId
+    ## 1       1094              2     1090  191410  191411   191412    1091
+    ##   speciesId               taxonomyName superkingdomName phylumName
+    ## 1      1094 Chlorobium phaeovibrioides         Bacteria   Chlorobi
+    ##   className    orderName    familyName  genusName
+    ## 1 Chlorobia Chlorobiales Chlorobiaceae Chlorobium
+    ##                  speciesName
+    ## 1 Chlorobium phaeovibrioides

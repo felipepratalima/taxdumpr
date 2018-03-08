@@ -450,10 +450,108 @@ test_that("The getStandardLineageIdsByIdsAsDataFrame function should receive tax
   expect_equal(colnames(lineage), c("taxonomyId", "superkingdomId", "phylumId", "classId", "orderId", "familyId", "genusId", "speciesId"))
   expect_equal(lineage[1,] %>% as.numeric, c(1094,2,1090,191410,191411,191412,1091,1094))
 
+  ## Valid id (incomplete taxonomy species)
+  lineage <- getStandardLineageIdsByIdsAsDataFrame(taxdumpr, 460513)
+  expect_equal(nrow(lineage), 1)
+  expect_equal(ncol(lineage), 8)
+  expect_equal(colnames(lineage), c("taxonomyId", "superkingdomId", "phylumId", "classId", "orderId", "familyId", "genusId", "speciesId"))
+  expect_equal(lineage[1,] %>% as.numeric, c(460513,2,1224,1807140,225057,225058,NA_integer_,460513))
+
   ## Valid id (genus)
   lineage <- getStandardLineageIdsByIdsAsDataFrame(taxdumpr, 1091)
   expect_equal(nrow(lineage), 1)
   expect_equal(ncol(lineage), 8)
   expect_equal(colnames(lineage), c("taxonomyId", "superkingdomId", "phylumId", "classId", "orderId", "familyId", "genusId", "speciesId"))
   expect_equal(lineage[1,] %>% as.numeric, c(1091,2,1090,191410,191411,191412,1091,NA_integer_))
+
+  ## Valid id (2)
+  lineage <- getStandardLineageIdsByIdsAsDataFrame(taxdumpr, c(2, 290318, 1094))
+  expect_equal(nrow(lineage), 3)
+  expect_equal(ncol(lineage), 8)
+  expect_equal(colnames(lineage), c("taxonomyId", "superkingdomId", "phylumId", "classId", "orderId", "familyId", "genusId", "speciesId"))
+  expect_equal(lineage[1,] %>% as.numeric, c(2,2,NA_integer_,NA_integer_,NA_integer_,NA_integer_,NA_integer_,NA_integer_))
+  expect_equal(lineage[2,] %>% as.numeric, c(1094,2,1090,191410,191411,191412,1091,1094))
+  expect_equal(lineage[3,] %>% as.numeric, c(290318,2,1090,191410,191411,191412,1091,1094))
+
+  ## Valid ids, NA, and inexistent ids
+  lineage <- getStandardLineageIdsByIdsAsDataFrame(taxdumpr, c(2, 290318, NA, 9876543210123456789, 1094))
+  expect_equal(nrow(lineage), 5)
+  expect_equal(ncol(lineage), 8)
+  expect_equal(colnames(lineage), c("taxonomyId", "superkingdomId", "phylumId", "classId", "orderId", "familyId", "genusId", "speciesId"))
+  expect_equal(lineage[1,] %>% as.numeric, c(2,2,NA_integer_,NA_integer_,NA_integer_,NA_integer_,NA_integer_,NA_integer_))
+  expect_equal(lineage[2,] %>% as.numeric, c(1094,2,1090,191410,191411,191412,1091,1094))
+  expect_equal(lineage[3,] %>% as.numeric, c(290318,2,1090,191410,191411,191412,1091,1094))
+  expect_equal(lineage[4,] %>% as.numeric, c(9876543210123456789,NA_integer_,NA_integer_,NA_integer_,NA_integer_,NA_integer_,NA_integer_,NA_integer_))
+  expect_equal(lineage[5,] %>% as.numeric, c(NA_integer_,NA_integer_,NA_integer_,NA_integer_,NA_integer_,NA_integer_,NA_integer_,NA_integer_))
+})
+
+test_that("The getStandardLineageIdsAndScientificNamesByIdsAsDataFrame function should receive taxonomy id(s) and return standard taxonomy as DF = [taxonomyId, superkingdomId, phylumId, ..., speciesId, superkingdomName, ..., speciesName]", {
+  columnsNames <- c("taxonomyId", "superkingdomId", "phylumId", "classId", "orderId", "familyId", "genusId", "speciesId",
+                    "taxonomyName", "superkingdomName", "phylumName", "className", "orderName", "familyName", "genusName", "speciesName")
+
+  ## NA
+  lineage <- getStandardLineageIdsAndScientificNamesByIdsAsDataFrame(taxdumpr, NA)
+  expect_equal(nrow(lineage), 1)
+  expect_equal(ncol(lineage), 16)
+  expect_equal(colnames(lineage), columnsNames)
+  expect_equal(lineage[1,1:8] %>% as.numeric, c(NA_integer_,NA_integer_,NA_integer_,NA_integer_,NA_integer_,NA_integer_,NA_integer_,NA_integer_))
+  expect_equal(lineage[1,9:16] %>% as.character, c(NA_character_,NA_character_,NA_character_,NA_character_,NA_character_,NA_character_,NA_character_,NA_character_))
+
+  ## Inexistent id
+  lineage <- getStandardLineageIdsAndScientificNamesByIdsAsDataFrame(taxdumpr, 9876543210123456789)
+  expect_equal(nrow(lineage), 1)
+  expect_equal(ncol(lineage), 16)
+  expect_equal(colnames(lineage), columnsNames)
+  expect_equal(lineage[1,1:8] %>% as.numeric, c(9876543210123456789,NA_integer_,NA_integer_,NA_integer_,NA_integer_,NA_integer_,NA_integer_,NA_integer_))
+  expect_equal(lineage[1,9:16] %>% as.character, c(NA_character_,NA_character_,NA_character_,NA_character_,NA_character_,NA_character_,NA_character_,NA_character_))
+
+  ## Valid id (subspecies)
+  lineage <- getStandardLineageIdsAndScientificNamesByIdsAsDataFrame(taxdumpr, 290318)
+  expect_equal(nrow(lineage), 1)
+  expect_equal(ncol(lineage), 16)
+  expect_equal(colnames(lineage), columnsNames)
+  expect_equal(lineage[1,1:8] %>% as.numeric, c(290318,2,1090,191410,191411,191412,1091,1094))
+  expect_equal(lineage[1,9:16] %>% as.character, c("Chlorobium phaeovibrioides DSM 265", "Bacteria", "Chlorobi", "Chlorobia", "Chlorobiales", "Chlorobiaceae", "Chlorobium", "Chlorobium phaeovibrioides"))
+
+  ## Valid id (species)
+  lineage <- getStandardLineageIdsAndScientificNamesByIdsAsDataFrame(taxdumpr, 1094)
+  expect_equal(nrow(lineage), 1)
+  expect_equal(ncol(lineage), 16)
+  expect_equal(colnames(lineage), columnsNames)
+  expect_equal(lineage[1,1:8] %>% as.numeric, c(1094, 2,1090,191410,191411,191412,1091,1094))
+  expect_equal(lineage[1,9:16] %>% as.character, c("Chlorobium phaeovibrioides", "Bacteria", "Chlorobi", "Chlorobia", "Chlorobiales", "Chlorobiaceae", "Chlorobium", "Chlorobium phaeovibrioides"))
+
+  ## Valid id (incomplete taxonomy species)
+  lineage <- getStandardLineageIdsAndScientificNamesByIdsAsDataFrame(taxdumpr, 460513)
+  expect_equal(nrow(lineage), 1)
+  expect_equal(ncol(lineage), 16)
+  expect_equal(colnames(lineage), columnsNames)
+  expect_equal(lineage[1,1:8] %>% as.numeric, c(460513,2,1224,1807140,225057,225058,NA_integer_,460513))
+  expect_equal(lineage[1,9:16] %>% as.character, c("uncultured Acidithiobacillaceae bacterium", "Bacteria", "Proteobacteria", "Acidithiobacillia", "Acidithiobacillales", "Acidithiobacillaceae", NA_character_, "uncultured Acidithiobacillaceae bacterium"))
+
+  ## Valid id (genus)
+  lineage <- getStandardLineageIdsAndScientificNamesByIdsAsDataFrame(taxdumpr, 1091)
+  expect_equal(nrow(lineage), 1)
+  expect_equal(ncol(lineage), 16)
+  expect_equal(colnames(lineage), columnsNames)
+  expect_equal(lineage[1,1:8] %>% as.numeric, c(1091, 2,1090,191410,191411,191412,1091,NA_integer_))
+  expect_equal(lineage[1,9:16] %>% as.character, c("Chlorobium", "Bacteria", "Chlorobi", "Chlorobia", "Chlorobiales", "Chlorobiaceae", "Chlorobium", NA_character_))
+
+  ## Valid ids, NA, and inexistent ids
+  lineage <- getStandardLineageIdsAndScientificNamesByIdsAsDataFrame(taxdumpr, c(2, 290318, NA, 9876543210123456789, 1094))
+  expect_equal(nrow(lineage), 5)
+  expect_equal(ncol(lineage), 16)
+  expect_equal(colnames(lineage), columnsNames)
+
+  expect_equal(lineage[1,1:8] %>% as.numeric, c(2,2,NA_integer_,NA_integer_,NA_integer_,NA_integer_,NA_integer_,NA_integer_))
+  expect_equal(lineage[2,1:8] %>% as.numeric, c(1094,2,1090,191410,191411,191412,1091,1094))
+  expect_equal(lineage[3,1:8] %>% as.numeric, c(290318,2,1090,191410,191411,191412,1091,1094))
+  expect_equal(lineage[4,1:8] %>% as.numeric, c(9876543210123456789,NA_integer_,NA_integer_,NA_integer_,NA_integer_,NA_integer_,NA_integer_,NA_integer_))
+  expect_equal(lineage[5,1:8] %>% as.numeric, c(NA_integer_,NA_integer_,NA_integer_,NA_integer_,NA_integer_,NA_integer_,NA_integer_,NA_integer_))
+
+  expect_equal(lineage[1,9:16] %>% as.character, c("Bacteria","Bacteria",NA_integer_,NA_integer_,NA_integer_,NA_integer_,NA_integer_,NA_integer_))
+  expect_equal(lineage[2,9:16] %>% as.character, c("Chlorobium phaeovibrioides", "Bacteria", "Chlorobi", "Chlorobia", "Chlorobiales", "Chlorobiaceae", "Chlorobium", "Chlorobium phaeovibrioides"))
+  expect_equal(lineage[3,9:16] %>% as.character, c("Chlorobium phaeovibrioides DSM 265", "Bacteria", "Chlorobi", "Chlorobia", "Chlorobiales", "Chlorobiaceae", "Chlorobium", "Chlorobium phaeovibrioides"))
+  expect_equal(lineage[4,9:16] %>% as.character, c(NA_character_,NA_character_,NA_character_,NA_character_,NA_character_,NA_character_,NA_character_,NA_character_))
+  expect_equal(lineage[5,9:16] %>% as.character, c(NA_character_,NA_character_,NA_character_,NA_character_,NA_character_,NA_character_,NA_character_,NA_character_))
 })
