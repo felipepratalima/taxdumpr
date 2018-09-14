@@ -1,7 +1,7 @@
 taxdumpr
 ================
 prata
-Wed Mar 7 23:55:23 2018
+Fri Sep 14 02:42:34 2018
 
 ``` r
 knitr::opts_chunk$set(echo = TRUE)
@@ -32,10 +32,10 @@ ls ~/taxdump/
     ## gc.prt
     ## gencode.dmp
     ## merged.dmp
-    ## names.csv
     ## names.dmp
     ## nodes.dmp
     ## readme.txt
+    ## taxdump.tar.gz
 
 In this docs, we are going to suppose that you downloaded and uncompressed this in your home folder. \#\# Install
 
@@ -51,10 +51,10 @@ require(taxdumpr)
 
     ## Loading required package: taxdumpr
 
-Packages methods are organized around the **Taxdumpr** object. This can be instatiated by the **Taxdumpr** constructor, which requires: 1. nodesDmpLocation: the path to the **nodes.dmp** file from **taxdump** downloaded files. 2. namesDmpLocation: the same to **names.dmp**.
+Packages methods are organized around the **Taxdumpr** object. This can be instatiated by the **Taxdumpr** constructor, which requires: 1. nodesDmpLocation: the path to the **nodes.dmp** file from **taxdump** downloaded files. 2. namesDmpLocation: the same to **names.dmp**. 3. mergedDmpLocation: the same to **merged.dmp**.
 
 ``` r
-taxdumpr <- Taxdumpr(nodesDmpLocation = "~/taxdump/nodes.dmp", namesDmpLocation = "~/taxdump/names.dmp")
+taxdumpr <- Taxdumpr(nodesDmpLocation = "~/taxdump/nodes.dmp", namesDmpLocation = "~/taxdump/names.dmp", mergedDmpLocation = "~/taxdump/merged.dmp")
 ```
 
 Usage Examples
@@ -87,6 +87,30 @@ getTaxonomyIdsByNames(taxdumpr, "Caseobacter polymorphus")
 ```
 
     ## [1] 1727
+
+### The getUpdatedIds function should receive old taxonomy id(s) and new (updated) taxonomy id(s). In the example the ID **319938** is updated to the new ID **288004** (*Beggiatoa leptomitoformis*):
+
+``` r
+getUpdatedIds(taxdumpr, 319938)
+```
+
+    ## [1] 288004
+
+Note that the non-updated ids are preserverd:
+
+``` r
+getUpdatedIds(taxdumpr, 288004)
+```
+
+    ## [1] 288004
+
+``` r
+getUpdatedIds(taxdumpr, c(319938, 1716, 1727, 288004))
+```
+
+    ## [1] 288004   1716   1727 288004
+
+**We recommend using *getUpdatedIds* always before starting to work with Taxdumpr**.
 
 ### The getScientificNamesByIds function should receive taxonomy id(s) and return the scientific name(s):
 

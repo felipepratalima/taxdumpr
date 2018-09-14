@@ -8,20 +8,24 @@ setClass(
   representation = list(
     .nodesDmpLocation = "character",
     .namesDmpLocation = "character",
+    .mergedDmpLocation = "character",
     .idsToNames = "Rcpp_Hashmap",
     .namesToIds = "Rcpp_Hashmap",
     .idsToRanks = "Rcpp_Hashmap",
     .idsToParentIds = "Rcpp_Hashmap",
+    .oldIdsToNewIds = "Rcpp_Hashmap",
     .STANDARD_RANKS = "character"
   ),
 
   prototype = list(
     .nodesDmpLocation = NA_character_,
     .namesDmpLocation = NA_character_,
+    .mergedDmpLocation = NA_character_,
     .idsToNames = NULL,
     .namesToIds = NULL,
     .idsToRanks = NULL,
     .idsToParentIds = NULL,
+    .oldIdsToNewIds = NULL,
     .STANDARD_RANKS = c("superkingdom", "phylum", "class", "order", "family", "genus", "species")
   )
 
@@ -31,22 +35,40 @@ setClass(
 #'
 #' Constructor
 #'
-Taxdumpr <- function(nodesDmpLocation, namesDmpLocation) {
+Taxdumpr <- function(nodesDmpLocation, namesDmpLocation, mergedDmpLocation) {
   object <- new("Taxdumpr")
 
   object@.nodesDmpLocation <- nodesDmpLocation
   object@.namesDmpLocation <- namesDmpLocation
+  object@.mergedDmpLocation <- mergedDmpLocation
 
   nodes.dmp <- loadNodes(object@.nodesDmpLocation)
   names.dmp <- loadNames(object@.namesDmpLocation)
+  merged.dmp <- loadMerged(object@.mergedDmpLocation)
 
   object@.idsToNames <- getIdsToNamesHashmap(names.dmp)
   object@.namesToIds <- getNamesToIdsHashmap(names.dmp)
   object@.idsToRanks <- getIdsToRanksHashmap(nodes.dmp)
   object@.idsToParentIds <- getIdsToParentIdsHashmap(nodes.dmp)
+  object@.oldIdsToNewIds <- getOldIdsToNewIdsHashmap(merged.dmp)
 
   return(object)
 }
+
+#'
+#'
+#'
+setGeneric("getUpdatedIds", function(x, taxonomyIds) standardGeneric("getUpdatedIds"))
+
+
+#'
+#'
+#'
+setMethod("getUpdatedIds", "Taxdumpr", function(x, taxonomyIds) {
+  mergedIds <- x@.oldIdsToNewIds$find(taxonomyIds)
+  taxonomyIds[mergedIds %>% is.na == F] <- mergedIds[mergedIds %>% is.na == F]
+  return(taxonomyIds)
+})
 
 
 #'
@@ -74,6 +96,7 @@ setGeneric("getScientificNamesByIds", function(x, taxonomyIds) standardGeneric("
 #'
 #'
 setMethod("getScientificNamesByIds", "Taxdumpr", function(x, taxonomyIds) {
+  taxonomyIds <- getUpdatedIds(x, taxonomyIds)
   taxonomyNames <- x@.idsToNames$find(taxonomyIds)
   return(taxonomyNames)
 })

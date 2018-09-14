@@ -15,18 +15,21 @@ allNames.names.dmp <- dplyr::filter(uniqueNamesDmp, nameClass %in% c("authority"
 
 nodes.dmp <- loadNodes("~/taxdump/nodes.dmp")
 
+merged.dmp <- loadMerged("~/taxdump/merged.dmp")
 
-taxdumpr <- Taxdumpr(nodesDmpLocation = "~/taxdump/nodes.dmp", namesDmpLocation = "~/taxdump/names.dmp")
+taxdumpr <- Taxdumpr(nodesDmpLocation = "~/taxdump/nodes.dmp", namesDmpLocation = "~/taxdump/names.dmp", mergedDmpLocation = "~/taxdump/merged.dmp")
 
 
-test_that("A taxdumpr class should have .namesDmpLocation, .nodesDmpLocation and extracted hashmaps from them", {
+test_that("A taxdumpr class should have .namesDmpLocation, .nodesDmpLocation, .mergedDmpLocation and extracted hashmaps from them", {
   expect_equal(taxdumpr@.namesDmpLocation, "~/taxdump/names.dmp")
   expect_equal(taxdumpr@.nodesDmpLocation, "~/taxdump/nodes.dmp")
+  expect_equal(taxdumpr@.mergedDmpLocation, "~/taxdump/merged.dmp")
 
   expect_equal(taxdumpr@.idsToNames$size(), nrow(scientificNames.names.dmp))
   expect_equal(taxdumpr@.namesToIds$size(), length(unique(allNames.names.dmp$name)))
   expect_equal(taxdumpr@.idsToRanks$size(), nrow(nodes.dmp))
   expect_equal(taxdumpr@.idsToParentIds$size(), nrow(nodes.dmp))
+  expect_equal(taxdumpr@.oldIdsToNewIds$size(), nrow(merged.dmp))
   expect_equal(taxdumpr@.STANDARD_RANKS, c("superkingdom", "phylum" , "class", "order", "family", "genus", "species"))
 })
 
@@ -57,6 +60,28 @@ test_that("The getTaxonomyIdsByNames function should receive taxonomy name(s) an
   expect_equal(getTaxonomyIdsByNames(taxdumpr, c("Corynebacterium variabile", "Caseobacter polymorphus")), c(1727, 1727))
 })
 
+test_that("The getUpdatedIds function should receive taxonomy id(s) and if when olds id(s) are present replace them with new id(s) and return the updated id(s)", {
+  ## NA
+  expect_equal(getUpdatedIds(taxdumpr, NA), NA_integer_)
+
+  ## Inexistent id
+  expect_equal(getUpdatedIds(taxdumpr, 9876543210123456789), 9876543210123456789)
+
+  ## Valid ids
+  expect_equal(getUpdatedIds(taxdumpr, 1716), 1716)
+  expect_equal(getUpdatedIds(taxdumpr, 1727), 1727)
+
+  ## Merged Id
+  expect_equal(getUpdatedIds(taxdumpr, 319938), 288004)
+
+  ## Lists
+  expect_equal(getUpdatedIds(taxdumpr, c(1716, NA)), c(1716, NA_integer_))
+  expect_equal(getUpdatedIds(taxdumpr, c(1716, 9876543210123456789)), c(1716, 9876543210123456789))
+  expect_equal(getUpdatedIds(taxdumpr, c(1716, 1727)), c(1716, 1727))
+  expect_equal(getUpdatedIds(taxdumpr, c(1716, 1727, 319938)), c(1716, 1727, 288004))
+  expect_equal(getUpdatedIds(taxdumpr, c(288004, 319938)), c(288004, 288004))
+})
+
 
 test_that("The getScientificNamesByIds function should receive taxonomy id(s) and return the scientific name(s)", {
   ## NA
@@ -68,6 +93,10 @@ test_that("The getScientificNamesByIds function should receive taxonomy id(s) an
   ## Valid ids
   expect_equal(getScientificNamesByIds(taxdumpr, 1716), "Corynebacterium")
   expect_equal(getScientificNamesByIds(taxdumpr, 1727), "Corynebacterium variabile")
+  ## ... with merged id converted
+  expect_equal(getScientificNamesByIds(taxdumpr, getUpdatedIds(taxdumpr, 319938)), "Beggiatoa leptomitoformis")
+  ## .. and directly with its updated id
+  expect_equal(getScientificNamesByIds(taxdumpr, getUpdatedIds(taxdumpr, 288004)), "Beggiatoa leptomitoformis")
 
   ## Lists
   expect_equal(getScientificNamesByIds(taxdumpr, c(1716, NA)), c("Corynebacterium", NA_character_))

@@ -43,7 +43,8 @@ require(taxdumpr)
 #' Packages methods are organized around the **Taxdumpr** object. This can be instatiated by the **Taxdumpr** constructor, which requires:
 #' 1. nodesDmpLocation: the path to the **nodes.dmp** file from **taxdump** downloaded files.
 #' 2. namesDmpLocation: the same to **names.dmp**.
-taxdumpr <- Taxdumpr(nodesDmpLocation = "~/taxdump/nodes.dmp", namesDmpLocation = "~/taxdump/names.dmp")
+#' 3. mergedDmpLocation: the same to **merged.dmp**.
+taxdumpr <- Taxdumpr(nodesDmpLocation = "~/taxdump/nodes.dmp", namesDmpLocation = "~/taxdump/names.dmp", mergedDmpLocation = "~/taxdump/merged.dmp")
 
 #' ## Usage Examples
 #'
@@ -56,6 +57,16 @@ getTaxonomyIdsByNames(taxdumpr, "Corynebacterium variabile")
 #' It works with synonyms too:
 getTaxonomyIdsByNames(taxdumpr, "Caseobacter")
 getTaxonomyIdsByNames(taxdumpr, "Caseobacter polymorphus")
+
+#' ### The getUpdatedIds function should receive old taxonomy id(s) and new (updated) taxonomy id(s). In the example the ID **319938** is updated to the new ID **288004** (*Beggiatoa leptomitoformis*):
+#'
+getUpdatedIds(taxdumpr, 319938)
+
+#' Note that the non-updated ids are preserverd:
+getUpdatedIds(taxdumpr, 288004)
+getUpdatedIds(taxdumpr, c(319938, 1716, 1727, 288004))
+
+#' **We recommend using *getUpdatedIds* always before starting to work with Taxdumpr**.
 
 #'
 #' ### The getScientificNamesByIds function should receive taxonomy id(s) and return the scientific name(s):

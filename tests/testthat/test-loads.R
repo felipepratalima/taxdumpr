@@ -33,3 +33,16 @@ test_that("loadNodes is a function to load nodes.dmp content into a data frame, 
   expect_equal(selectedNode$parentId, 1091)
   expect_equal(selectedNode$rank, "species")
 })
+
+test_that("loadMerged is a function to load merged.dmp content into a data frame, with the old taxonomy id and new taxonomy id of the nodes", {
+  merged.dmp <- loadMerged("~/taxdump/merged.dmp")
+
+  ## Should return a data frame with 3 columns (id, parentId, rank)
+  expect_equal(ncol(merged.dmp), 2)
+  expect_equal(names(merged.dmp), c("oldTaxId", "newTaxId"))
+
+  ## Test one node
+  selectedNode <- merged.dmp[merged.dmp$oldTaxId == 319938,]
+  expect_equal(selectedNode$oldTaxId, 319938)
+  expect_equal(selectedNode$newTaxId, 288004)
+})

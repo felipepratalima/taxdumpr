@@ -14,6 +14,7 @@ allNames.names.dmp <- dplyr::filter(uniqueNamesDmp, nameClass %in% c("authority"
 
 nodes.dmp <- loadNodes("~/taxdump/nodes.dmp")
 
+merged.dmp <- loadMerged("~/taxdump/merged.dmp")
 
 ## getIdsToNamesHashmap
 test_that("getIdsToNamesHashmap is a function which receives a names.dmp data frame and return a hashmap, where the key is the taxonomy id and the value is the taxonomy name", {
@@ -59,4 +60,13 @@ test_that("getIdsToParentIdsHashmap is a function which receives a nodes.dmp dat
   expect_equal(idsToRanksHashmap$find(1091), "genus")
   expect_equal(idsToRanksHashmap$find(1094), "species")
   expect_equal(idsToRanksHashmap$find(290318), "no rank")
+})
+
+
+test_that("getOldIdsToNewIdsHashmap is a function which receives a merged.dmp data frame and return a hashmap, where the key is the old taxonomy id and the value is its new id", {
+  ## Should return a hashmap [taxonomy id => parent taxonomy id]
+  oldIdsToNewIdsHashmap <- getOldIdsToNewIdsHashmap(merged.dmp)
+
+  expect_equal(oldIdsToNewIdsHashmap$size(), nrow(merged.dmp))
+  expect_equal(oldIdsToNewIdsHashmap$find(319938), 288004)
 })
